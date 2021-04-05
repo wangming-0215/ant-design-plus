@@ -7,7 +7,6 @@ import Login from 'src/pages/Login';
 import React from 'react';
 
 const NotFound = React.lazy(() => import('src/pages/NotFound'));
-
 const Test: React.FC = styled('div')({ height: 10000 });
 
 const routes: PartialRouteObject[] = [
@@ -15,7 +14,6 @@ const routes: PartialRouteObject[] = [
     path: '/login',
     element: <Login />,
   },
-
   {
     path: '/',
     element: <MainLayout />,

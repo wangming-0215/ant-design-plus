@@ -1,10 +1,10 @@
 import { configureStore } from '@reduxjs/toolkit';
 
-import menu from './menu.slice';
+import config from './config.slice';
 
 export const store = configureStore({
   reducer: {
-    menu,
+    config,
   },
 });
 

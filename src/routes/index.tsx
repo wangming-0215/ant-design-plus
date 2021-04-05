@@ -3,8 +3,10 @@ import { Navigate } from 'react-router-dom';
 import styled from '@emotion/styled';
 
 import { MainLayout } from 'src/layouts';
-import NotFound from 'src/pages/NotFound';
 import Login from 'src/pages/Login';
+import React from 'react';
+
+const NotFound = React.lazy(() => import('src/pages/NotFound'));
 
 const Test: React.FC = styled('div')({ height: 10000 });
 
@@ -30,7 +32,7 @@ const routes: PartialRouteObject[] = [
         children: [
           {
             path: '/',
-            element: <Navigate to="/app/form/basic/1" replace />,
+            element: <Navigate to="/app/form/basic" replace />,
           },
           {
             path: '/basic',

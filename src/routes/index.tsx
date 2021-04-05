@@ -15,6 +15,7 @@ const routes: PartialRouteObject[] = [
     path: '/login',
     element: <Login />,
   },
+
   {
     path: '/',
     element: <MainLayout />,

@@ -1,35 +1,53 @@
-import { createSlice, createSelector } from '@reduxjs/toolkit';
+import { createSlice, createSelector, PayloadAction } from '@reduxjs/toolkit';
 import { matchPath } from 'react-router-dom';
 
 import { Menu, breadcrumbs, menus } from 'src/config';
 import { AppState } from './store';
 
 export interface State {
-  menus: Menu[];
-  breadcrumbs: Record<string, string>;
+  menus?: Menu[];
+  breadcrumbs?: Record<string, string>;
+  authority?: string[];
 }
 
 export const initialState: State = {
   menus,
   breadcrumbs,
+  authority: [],
 };
 
 const slice = createSlice({
   name: 'config',
   initialState,
-  reducers: {},
+  reducers: {
+    setMenus: (state, action: PayloadAction<Menu[]>) => {
+      state.menus = action.payload;
+    },
+    setBreadcrumbs: (state, action: PayloadAction<Record<string, string>>) => {
+      state.breadcrumbs = action.payload;
+    },
+    setAuthority: (state, action: PayloadAction<string[]>) => {
+      state.authority = action.payload;
+    },
+  },
 });
+
+export const { setAuthority, setBreadcrumbs, setMenus } = slice.actions;
 
 export default slice.reducer;
 
 /** 导航目录 */
-export const selectMenus = (state: AppState) => state.config.menus;
-
-/** 面包屑字典 */
-export const selectBreadcrumbs = (state: AppState) => state.config.breadcrumbs;
+export const selectMenus = createSelector(
+  (state: AppState) => state.config.menus || [],
+  (state: AppState) => state.config.authority || [],
+  getMenusWithAuthority
+);
 
 /** 目录扁平化 */
-export const selectFlatMenus = createSelector(selectMenus, getFlatMenus);
+export const selectFlatMenus = createSelector(
+  (state: AppState) => state.config.menus || [],
+  getFlatMenus
+);
 
 /** 导航选中 */
 export const selectMatchedMenu = (pathname: string) => {
@@ -48,13 +66,62 @@ export const selectOpenedMenu = (pathname: string) => {
 
 /** 面包屑 */
 export const selectCurrentBreadcrumbs = (pathname: string) => {
-  return createSelector(selectBreadcrumbs, (breadcrumbs) =>
-    getBreadcrumbs(breadcrumbs, pathname)
+  return createSelector(
+    (state: AppState) => state.config.breadcrumbs || {},
+    (breadcrumbs) => getBreadcrumbs(breadcrumbs, pathname)
   );
 };
 
 /** utils */
 type FlatMenus = Record<string, Menu>;
+
+/**
+ * 验证是否拥有某个/某些权限
+ *
+ * @param authority 待验证的权限
+ * @param authorities 所有权限
+ */
+function hasAuthority(
+  authority: string | string[] = '',
+  authorities: string[]
+): boolean {
+  if (!authority) {
+    // 第一个参数不传时，不进行权限验证，返回 true
+    return true;
+  }
+  const authForTest = !Array.isArray(authority) ? [authority] : authority;
+  return authForTest.some((t) => authorities.includes(t));
+}
+
+/**
+ * 根据权限构造新的 menu
+ *
+ * @param menuData
+ * @param authority
+ * @returns
+ */
+function getMenusWithAuthority(
+  menuData: Menu[],
+  authorities: string[]
+): Menu[] {
+  return menuData.reduce<Menu[]>((result, current) => {
+    let menu: Menu | null = null;
+    const { authority = '', children = [], ...rest } = current;
+    if (hasAuthority(authority, authorities)) {
+      menu = {
+        authority,
+        children: getMenusWithAuthority(children, authorities),
+        ...rest,
+      };
+    }
+
+    if (menu) {
+      return result.concat(menu);
+    }
+
+    return result;
+  }, []);
+}
 
 /**
  * 导航目录扁平化

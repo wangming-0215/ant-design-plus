@@ -1,17 +1,15 @@
-import SvgIcon from 'src/components/SvgIcon';
-
 export type Menu = {
   name: string;
   path: string;
   icon?: JSX.Element;
   children?: Menu[];
+  authority?: string | string[]; // ’或‘的关系
 };
 
 const menus: Menu[] = [
   {
     name: 'Dashboard',
     path: '/app/dashboard',
-    icon: <SvgIcon name="dashboard" />,
   },
   {
     name: '表单',
@@ -20,6 +18,7 @@ const menus: Menu[] = [
       {
         name: '基础表单',
         path: '/app/form/basic',
+        authority: ['admin'],
       },
       {
         name: '分步表单',

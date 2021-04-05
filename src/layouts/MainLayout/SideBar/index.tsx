@@ -11,7 +11,7 @@ import { useAppSelector } from 'src/hooks';
 
 function getMenuItems(menuData: MenuItem[]): JSX.Element[] {
   return menuData.reduce<JSX.Element[]>((result, current) => {
-    if (current.children) {
+    if (current.children && current.children.length > 0) {
       return result.concat(
         <Menu.SubMenu key={current.path} title={current.name}>
           {getMenuItems(current.children)}

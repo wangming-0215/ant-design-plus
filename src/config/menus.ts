@@ -18,7 +18,6 @@ const menus: Menu[] = [
       {
         name: '基础表单',
         path: '/app/form/basic',
-        authority: ['admin'],
       },
       {
         name: '分步表单',

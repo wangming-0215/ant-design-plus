@@ -1,45 +1,34 @@
-import { createSlice, createSelector, PayloadAction } from '@reduxjs/toolkit';
+import { createSlice, createSelector } from '@reduxjs/toolkit';
 import { matchPath } from 'react-router-dom';
 
-import { Menu, breadcrumbs, menus } from 'src/config';
+import config, { Menu } from 'src/config';
 import { AppState } from './store';
 
 export interface State {
   menus?: Menu[];
   breadcrumbs?: Record<string, string>;
-  authority?: string[];
+  authority?: Record<string, string | string[]>;
 }
 
 export const initialState: State = {
-  menus,
-  breadcrumbs,
-  authority: [],
+  menus: config.menus || [],
+  breadcrumbs: config.breadcrumbs || {},
+  authority: config.authority || {},
 };
 
 const slice = createSlice({
   name: 'config',
   initialState,
-  reducers: {
-    setMenus: (state, action: PayloadAction<Menu[]>) => {
-      state.menus = action.payload;
-    },
-    setBreadcrumbs: (state, action: PayloadAction<Record<string, string>>) => {
-      state.breadcrumbs = action.payload;
-    },
-    setAuthority: (state, action: PayloadAction<string[]>) => {
-      state.authority = action.payload;
-    },
-  },
+  reducers: {},
 });
-
-export const { setAuthority, setBreadcrumbs, setMenus } = slice.actions;
 
 export default slice.reducer;
 
 /** 导航目录 */
 export const selectMenus = createSelector(
   (state: AppState) => state.config.menus || [],
-  (state: AppState) => state.config.authority || [],
+  (state: AppState) => state.config.authority || {},
+  (state: AppState) => state.authority || [],
   getMenusWithAuthority
 );
 
@@ -72,11 +61,27 @@ export const selectCurrentBreadcrumbs = (pathname: string) => {
   );
 };
 
+/** 用户是否有权限 */
+export const selectHasAuthority = (pathname: string) => {
+  return createSelector(
+    (state: AppState) => state.config.authority || {},
+    (state: AppState) => state.authority || {},
+    (authorityMap, userAuthorityList) => {
+      return hasAuthority(
+        getAuthorityFromEntries(authorityMap, pathname),
+        userAuthorityList
+      );
+    }
+  );
+};
+
 /** utils */
 type FlatMenus = Record<string, Menu>;
 
 /**
  * 验证是否拥有某个/某些权限
+ *
+ * 可能会根据后端做具体调整
  *
  * @param authority 待验证的权限
  * @param authorities 所有权限
@@ -93,6 +98,19 @@ function hasAuthority(
   return authForTest.some((t) => authorities.includes(t));
 }
 
+function getAuthorityFromEntries(
+  entries: Record<string, string | string[]>,
+  pathname: string
+): string | string[] {
+  let authority: string | string[] = '';
+  Object.keys(entries).forEach((path) => {
+    if (matchPath({ path, end: true }, pathname)) {
+      authority = entries[path];
+    }
+  });
+  return authority;
+}
+
 /**
  * 根据权限构造新的 menu
  *
@@ -101,16 +119,18 @@ function hasAuthority(
  * @returns
  */
 function getMenusWithAuthority(
-  menuData: Menu[],
+  menuData: Menu[] = [],
+  authorityMap: Record<string, string | string[]>,
   authorities: string[]
 ): Menu[] {
   return menuData.reduce<Menu[]>((result, current) => {
+    const { children, ...rest } = current;
     let menu: Menu | null = null;
-    const { authority = '', children = [], ...rest } = current;
+    let authority = getAuthorityFromEntries(authorityMap, current.path);
+
     if (hasAuthority(authority, authorities)) {
       menu = {
-        authority,
-        children: getMenusWithAuthority(children, authorities),
+        children: getMenusWithAuthority(children, authorityMap, authorities),
         ...rest,
       };
     }

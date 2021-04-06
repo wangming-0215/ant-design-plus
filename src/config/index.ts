@@ -1,3 +1,12 @@
-export type { Menu } from './menu';
-export { default as menus } from './menu';
-export { default as breadcrumbs } from './breadcrumbs';
+import menus from './menus';
+import breadcrumbs from './breadcrumbs';
+import authority from './authority';
+
+const config = {
+  menus,
+  breadcrumbs,
+  authority,
+};
+
+export default config;
+export type { Menu } from './menus';

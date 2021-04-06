@@ -1,20 +1,35 @@
-import styled from '@emotion/styled';
-import { Spin } from 'antd';
+import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
-const SplashRoot = styled('div')({
-  width: '100vw',
-  height: '100vh',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-});
+import { authService } from 'src/services';
+import { sleep } from 'src/utils';
+import PageLoading from '../PageLoading';
 
-const Splash = () => {
-  return (
-    <SplashRoot>
-      <Spin spinning size="large" />
-    </SplashRoot>
-  );
+const Auth: React.FC = ({ children }) => {
+  const [loading, setLoading] = useState<boolean>(true);
+
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const init = async () => {
+      authService.authentication();
+      await sleep(3000);
+      if (authService.isAuthenticated()) {
+        // TODO: Fetch user profile and user authorities
+      } else {
+        navigate('/login', { replace: true });
+      }
+      setLoading(false);
+    };
+
+    init();
+  }, [navigate]);
+
+  if (loading) {
+    return <PageLoading />;
+  }
+
+  return <React.Fragment>{children}</React.Fragment>;
 };
 
-export default Splash;
+export default Auth;

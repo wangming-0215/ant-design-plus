@@ -6,7 +6,7 @@ import {
   selectMenus,
   selectOpenedMenu,
 } from 'src/app/config.slice';
-import { Menu as MenuItem } from 'src/config/menu';
+import { Menu as MenuItem } from 'src/config';
 import { useAppSelector } from 'src/hooks';
 
 function getMenuItems(menuData: MenuItem[]): JSX.Element[] {

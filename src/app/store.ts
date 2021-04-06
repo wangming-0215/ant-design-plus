@@ -1,10 +1,12 @@
 import { configureStore } from '@reduxjs/toolkit';
 
 import config from './config.slice';
+import authority from './authority.slice';
 
 export const store = configureStore({
   reducer: {
     config,
+    authority,
   },
 });
 
